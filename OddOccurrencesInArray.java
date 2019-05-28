@@ -50,13 +50,13 @@ public class OddOccurrencesInArray {
             if (resultList.size() > 0) {
                 result = resultList.get(0);
             }
-        } //Performance O(N*2)*/
+        } //Performance -Time Complexity O(N*2)*/
         for (final int a : A) {
             System.out.println("result1 " + result);
             System.out.println(result ^ a);
             result ^= a;
             System.out.println("result " + result);
         }
-        System.out.println(result.intValue()); //Performance O(N)
+        System.out.println(result.intValue()); //Performance-Time Complexity O(N)
     }
   }
