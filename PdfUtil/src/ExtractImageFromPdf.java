@@ -1,5 +1,5 @@
 /*
-This will extract the images available in the PDF using PDFBox
+This will extract the images available in the PDF using PDFBox 1.8.8
 */
 import java.awt.image.BufferedImage;
 import java.io.IOException;
