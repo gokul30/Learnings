@@ -1,0 +1,159 @@
+<bean id="g1" class="" />
+		<bean id="g2" class="" />
+	<bean id="securityLogManager" class="">
+		<constructor-arg>
+			<map>
+				<entry key="GENERIC" value-ref="g1" />
+			    <entry key="GENERIC_MODIFI" value-ref="g2" />
+			</map>
+		</constructor-arg>
+		<constructor-arg ref="c2" />
+	</bean>
+  
+  private T getLoggable(final T type) {
+        return t.get(type.name());
+    }
+    
+    
+    -----------
+    
+    class BeanProvider<T> {
+
+    private final Class<T> beanClazz;
+
+    public BeanProvider(final Class<T> beanClazz) {
+        super();
+        this.beanClazz = beanClazz;
+    }
+
+    public T getBean() {
+        try {
+            return beanClazz.newInstance();
+        } catch (final InstantiationException e) {
+            throw new BeanNotFoundException(e);
+        } catch (final IllegalAccessException e) {
+            throw new BeanNotFoundException(e);
+        }
+    }
+
+    public T getBean(final Object... args) {
+        try {
+            final Class[] constArgTypes = new Class[args.length];
+            int index = 0;
+            for (final Object arg : args) {
+                constArgTypes[index++] = arg.getClass();
+            }
+            return beanClazz.getConstructor(constArgTypes).newInstance(args);
+        } catch (final InstantiationException e) {
+            throw new BeanNotFoundException(e);
+        } catch (final IllegalAccessException e) {
+            throw new BeanNotFoundException(e);
+        } catch (final IllegalArgumentException e) {
+            throw new BeanNotFoundException(e);
+        } catch (final SecurityException e) {
+            throw new BeanNotFoundException(e);
+        } catch (final InvocationTargetException e) {
+            throw new BeanNotFoundException(e);
+        } catch (final NoSuchMethodException e) {
+            throw new BeanNotFoundException(e);
+        }
+    }
+
+}
+------------
+
+
+private final static ABeanProvider _instanceBeanProvider = new ABeanProvider();
+	private final Map<ABeanType,ClassPathXmlApplicationContext> contextMap = new HashMap<ABeanType, ClassPathXmlApplicationContext>();
+
+	public static ABeanProvider getInstance() {
+		return _instanceBeanProvider;
+	}
+
+	private ClassPathXmlApplicationContext getContext(final ABeanType key) {
+		java.util.function.Function<ABeanType, ClassPathXmlApplicationContext> function = (k) -> new ClassPathXmlApplicationContext(key.getBeans());
+		ClassPathXmlApplicationContext context = contextMap.computeIfAbsent(key,function);
+		log4Debug.debug("context==>", context);
+		return context;
+	}
+
+	public <T> T getBean(final ABeanType key, final Class<T> clazz, final String beanName) {
+		return getContext(key).getBean(beanName, clazz);
+	}
+
+	public <T> T getBean(final ABeanType key, final Class<T> clazz) {
+		return getContext(key).getBean(clazz);
+	}
+
+	public Object getBean(final ABeanType key, final String beanName) {
+		return getContext(key).getBean(beanName);
+	}
+  
+  ----
+  public enum ABeanType implements Serializable {
+  private String[] beans;
+
+    private ABeanType(final boolean plusDefault, final ABeans... beans) {
+
+        this.beans = new String[beans.length + (plusDefault ? 2 : 0)];
+        int index = 0;
+        if (plusDefault) {
+            this.beans[index++] = ABeans.A.getBeanXml();
+            this.beans[index++] = ABeans.B.getBeanXml();
+
+        }
+        for (final ABeans bean : beans) {
+
+            this.beans[index++] = bean.getBeanXml();
+        }
+    }
+
+    private ABeanType(final ABeans... beans) {
+        this(true, beans);
+    }
+
+    public String[] getBeans() {
+        return beans;
+    }
+  }
+  
+  ---------
+  
+  JSONUtil {
+
+    public static <T> String convertToJson(final Class<T> clazz, final T obj) {
+        try {
+            final StringWriter writer = new StringWriter();
+            final ObjectMapper objMaper = new ObjectMapper();
+            objMaper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+            objMaper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            objMaper.writeValue(writer, obj);
+            return writer.toString();
+        } catch (final JsonGenerationException e) {
+            throw new UtilityException(e);
+        } catch (final JsonMappingException e) {
+            throw new UtilityException(e);
+        } catch (final IOException e) {
+            throw new UtilityException(e);
+        }
+    }
+
+    public static <T> T convertToPojo(final Class<T> clazz, final String json) {
+        try {
+            final ObjectMapper objMaper = new ObjectMapper();
+            objMaper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+            objMaper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            return objMaper.readValue(json, clazz);
+        } catch (final JsonParseException e) {
+            throw new UtilityException(e);
+        } catch (final JsonMappingException e) {
+            throw new UtilityException(e);
+        } catch (final IOException e) {
+            throw new UtilityException(e);
+        }
+    }
+
+}
+--------------------
+
+  
