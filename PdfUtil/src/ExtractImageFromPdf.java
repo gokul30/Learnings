@@ -8,7 +8,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -58,7 +57,7 @@ public class ExtractImageFromPdf {
 							System.out.println(cmap);
 							for(COSBase base : cmap){
 								//System.out.println(base.getCOSObject());
-								System.out.println(ToStringBuilder.reflectionToString(base.getCOSObject()));
+								//System.out.println(ToStringBuilder.reflectionToString(base.getCOSObject()));
 							}
 							System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
 							System.out.println(pdxObjectForm.getResources().getXObjects());
@@ -93,6 +92,6 @@ public class ExtractImageFromPdf {
 	}
 
 	public static void main(String[] args) throws IOException {
-		PdfHelper.convertToImage("freeformatter-decoded.pdf");
+		ExtractImageFromPdf.convertToImage("freeformatter-decoded.pdf");
 	}
 }
