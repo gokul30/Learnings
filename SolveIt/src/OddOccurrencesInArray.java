@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 /*A non-empty array A consisting of N integers is given. The array contains an odd number of elements, and each element of the array can be paired with another element that has the same value, except for one element that is left unpaired.
 
 For example, in array A such that:
@@ -30,15 +33,15 @@ all but one of the values in A occur an even number of times*/
 
 public class OddOccurrencesInArray {
 
-    public static void main(final String[] args) {
+	public static void main(final String[] args) {
 
-        oddValueOut();
-    }
-    
-    public static void oddValueOut() {
-        final int[] A = { 1, 9, 1, 3, 9 };
-        Integer result = 0;
-        /*final List<Integer> resultList = new ArrayList<Integer>();
+		oddValueOut();
+	}
+
+	public static void oddValueOut() {
+		final int[] A = { 1, 9, 1, 3, 9 };
+		Integer result = 0;
+		/*final List<Integer> resultList = new ArrayList<Integer>();
         if (A.length % 2 != 0) {
             for (final int a : A) {
                 if (!resultList.contains(Integer.valueOf(a))) {
@@ -51,12 +54,14 @@ public class OddOccurrencesInArray {
                 result = resultList.get(0);
             }
         } //Performance -Time Complexity O(N*2)*/
-        for (final int a : A) {
-            System.out.println("result1 " + result);
-            System.out.println(result ^ a);
-            result ^= a;
-            System.out.println("result " + result);
-        }
-        System.out.println(result.intValue()); //Performance-Time Complexity O(N)
-    }
-  }
+		for (final int a : A) {
+			System.out.println("result1 " + result);
+			System.out.println(result ^ a);
+			result ^= a;
+			System.out.println("result " + result);
+		}
+		System.out.println(result.intValue()); //Performance-Time Complexity O(N)
+	}
+
+	
+}
