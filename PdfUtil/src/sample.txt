@@ -156,4 +156,73 @@ private final static ABeanProvider _instanceBeanProvider = new ABeanProvider();
 }
 --------------------
 
+public final class RequestToViewTransformer {
+
+
+    /**
+     * This method transforms data from requestEvent to pageView
+     * the only constrain is that pageView fields name should match controls in jsp 
+     * @param viewClass
+     * @param requestEvent
+     * @return Corresponding Object for given viewClass
+     */
+    public <T> T getTransferObject(final Class<T> viewClass, final RequestEvent requestEvent) {
+        T viewClsObject = null;
+        try {
+            viewClsObject = viewClass.newInstance();
+            final Field[] viewClsField = viewClass.getDeclaredFields();
+            for (final Field field : viewClsField) {
+                Object fieldArg = null;
+                final Object attribute = requestEvent.getAttribute(field.getName());
+                final Class<?> attributeType = field.getType();
+                if (String.class.isAssignableFrom(attributeType)) {
+                    fieldArg = attribute != null ? ((String) attribute).trim() : (String) attribute;
+                } else if (Collection.class.isAssignableFrom(attributeType)) {
+                    final Class<?> genTypeClazz = (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
+                    if (String.class.isAssignableFrom(genTypeClazz)) {
+                        List<String> resultList = null;
+                        if (attribute == null) {
+                            resultList = new ArrayList<String>();
+                        } else if (attribute instanceof String[]) {
+                            resultList = Arrays.asList((String[]) attribute);
+                        } else {
+                            resultList = Arrays.asList((String) attribute);
+                        }
+                        final List<String> trimedResultList = new ArrayList<String>();
+                        for (final String result : resultList) {
+                            trimedResultList.add(result.trim());
+                        }
+                        fieldArg = trimedResultList;
+                    }
+                } else {
+                    log.debug(" Un known Type for Transfer ", attributeType);
+                }
+                if (fieldArg != null) {
+                    field.setAccessible(true);
+                    field.set(viewClsObject, fieldArg);
+                }
+            }
+        } catch (final Exception e) {
+            
+        }
+        return viewClsObject;
+    }
+    
+   ----------------------------------------
+   
+    V_T1 T1%ROWTYPE;
+    TYPE V_T11 IS TABLE OF T11%ROWTYPE;
+    V_T1_COLL V_T11;
+    V_T1_COUNT        NUMBER;
+    
+    V_T1_COLL := V_T11();
+    V_T1_COUNT        := 0;
+    
+    V_T1_COUNT := V_T1_COUNT + 1;
+        V_T1_COLL.EXTEND;
+        V_T1_COLL(V_T1_COUNT) := V_T1;
+	
+---------------------------
+  ${JAVA_HOME}/bin/java -classpath ${CLASSPATH} -DProviderUrl=${URL} ${INPUTS}
   
+  ----
