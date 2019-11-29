@@ -1,6 +1,6 @@
-public class BDIServiceClient {
+public class ServiceClient {
 
-    public static String getBDIServiceResponse(final String url, final String keyStorePath, final String keyStorePass,final String certificatePass,final String proxyUrl, final Integer proxyport) throws Exception {
+    public static String getServiceResponse(final String url, final String keyStorePath, final String keyStorePass,final String certificatePass,final String proxyUrl, final Integer proxyport) throws Exception {
 
 System.setProperty("javax.net.debug", "ssl");
 //System.setProperty("https.proxyHost","") ;
@@ -77,6 +77,6 @@ System.setProperty("javax.net.debug", "ssl");
    }
 
     public static void main(final String[] args) throws Exception {
-        final String response =BDIServiceClient.getBDIServiceResponse("https://192.168.90.4/Service.asmx", "C:\\Users\\Desktop\\test.jks", "changeit", "changeit", "", 8080);
+        final String response =ServiceClient.getServiceResponse("https://192.168.90.4/Service.asmx", "C:\\Users\\Desktop\\test.jks", "changeit", "changeit", "", 8080);
         System.out.println(response);
     }
