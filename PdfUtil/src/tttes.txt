@@ -1,0 +1,82 @@
+public class BDIServiceClient {
+
+    public static String getBDIServiceResponse(final String url, final String keyStorePath, final String keyStorePass,final String certificatePass,final String proxyUrl, final Integer proxyport) throws Exception {
+
+System.setProperty("javax.net.debug", "ssl");
+//System.setProperty("https.proxyHost","") ;
+//System.setProperty("https.proxyPort", "8080") ;
+//     String url = "https://192.50.51.227:8082/hello";
+       //final String url = "";
+
+       final KeyStore keyStore = KeyStore.getInstance("JKS");
+       final FileInputStream instream = new FileInputStream(new File(
+               keyStorePath));
+       //"C:\\Gokul\\certificate\\new1\\clientcert.jks"
+
+      /* final FileInputStream instream = new FileInputStream(new File(
+               args[0]));*/
+       try {
+           keyStore.load(instream, keyStorePass.toCharArray());
+       } finally {
+           instream.close();
+       }
+
+       final SSLContext sslcontext = SSLContexts.custom()
+               .loadKeyMaterial(keyStore, certificatePass.toCharArray()).build();
+
+       final SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(
+               sslcontext, new String[] { "TLSv1.1" }, null,
+               SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+    /*   final CloseableHttpClient httpclient = HttpClients.custom()
+               .setSSLSocketFactory(sslsf).build();*/
+
+       final HttpHost proxy = new HttpHost(proxyUrl,proxyport);
+      final Credentials credentials = new UsernamePasswordCredentials("","");
+       final AuthScope authScope = new AuthScope(proxyUrl,proxyport);
+       final CredentialsProvider credsProvider = new BasicCredentialsProvider();
+       credsProvider.setCredentials(authScope, credentials);
+       final CloseableHttpClient httpclient = HttpClients.custom()
+               .setSSLSocketFactory(sslsf).setProxy(proxy).setDefaultCredentialsProvider(credsProvider).build();
+
+       final HttpPost method = new HttpPost(url);
+       final StringBuffer response = new StringBuffer();
+       CloseableHttpResponse httpresponse = null;
+       String line = "";
+
+       try {
+
+           System.out.println("<-------------Executing request----------->"
+                   + method.getRequestLine());
+
+           httpresponse = httpclient.execute(method);
+           final HttpEntity entity = httpresponse.getEntity();
+
+           System.out.println("<----------------Response-------------->"
+                   + httpresponse.getStatusLine());
+
+           final BufferedReader reader = new BufferedReader(
+                   new InputStreamReader(entity.getContent()));
+           while ((line = reader.readLine()) != null) {
+               response.append(line);
+           }
+           System.out.println("Response :" + response.toString());
+
+       }catch (  final UnknownHostException e) {
+           e.printStackTrace();
+         }
+       catch (final Exception e) {
+           e.printStackTrace();
+       } finally {
+           if (httpresponse != null) {
+            httpresponse.close();
+           }
+
+           method.releaseConnection();
+       }
+    return response.toString();
+   }
+
+    public static void main(final String[] args) throws Exception {
+        final String response =BDIServiceClient.getBDIServiceResponse("https://192.168.90.4/Service.asmx", "C:\\Users\\Desktop\\test.jks", "changeit", "changeit", "", 8080);
+        System.out.println(response);
+    }
