@@ -1,0 +1,116 @@
+import com.google.protobuf.struct.{Struct, Value}
+import com.google.protobuf.struct.Value.Kind
+
+object MapToProtobufStruct {
+
+  // Helper function to convert Any to protobuf Value
+  def anyToValue(any: Any): Value = any match {
+    case v: String  => Value(Kind.StringValue(v))
+    case v: Boolean => Value(Kind.BoolValue(v))
+    case v: Int     => Value(Kind.NumberValue(v.toDouble))
+    case v: Long    => Value(Kind.NumberValue(v.toDouble))
+    case v: Float   => Value(Kind.NumberValue(v.toDouble))
+    case v: Double  => Value(Kind.NumberValue(v))
+    case v: Map[_, _] =>
+      // Recursive conversion for nested maps
+      val struct = mapToStruct(v.asInstanceOf[Map[String, Any]])
+      Value(Kind.StructValue(struct))
+    case v: Seq[_] =>
+      // Recursive conversion for lists
+      val listValues = v.map(anyToValue)
+      Value(Kind.ListValue(com.google.protobuf.struct.ListValue(listValues)))
+    case _ => Value(Kind.NullValue(com.google.protobuf.NullValue.NULL_VALUE))
+  }
+
+  // Function to convert Map[String, Any] to Struct
+  def mapToStruct(map: Map[String, Any]): Struct = {
+    val fields = map.map { case (key, value) =>
+      key -> anyToValue(value)
+    }
+    Struct(fields)
+  }
+}
+
+object Main extends App {
+  // Example Map
+  val exampleMap: Map[String, Any] = Map(
+    "name" -> "Alice",
+    "age" -> 30,
+    "isEmployee" -> true,
+    "salary" -> 5000.50,
+    "address" -> Map(
+      "city" -> "San Francisco",
+      "state" -> "CA"
+    ),
+    "projects" -> Seq("Scala", "Protobuf")
+  )
+
+  // Convert Map[String, Any] to Struct
+  val protobufStruct: Struct = MapToProtobufStruct.mapToStruct(exampleMap)
+
+  println(protobufStruct)  // Print the resulting Struct
+}
+----
+import com.google.protobuf.struct.{Struct, Value}
+import com.google.protobuf.{ListValue, NullValue}
+
+object MapToProtobufStruct {
+
+  // Helper function to convert Any to protobuf Value using the builder
+  def anyToValue(any: Any): Value = {
+    val valueBuilder = Value.newBuilder()
+
+    any match {
+      case v: String  => valueBuilder.setStringValue(v)
+      case v: Boolean => valueBuilder.setBoolValue(v)
+      case v: Int     => valueBuilder.setNumberValue(v.toDouble)
+      case v: Long    => valueBuilder.setNumberValue(v.toDouble)
+      case v: Float   => valueBuilder.setNumberValue(v.toDouble)
+      case v: Double  => valueBuilder.setNumberValue(v)
+      case v: Map[_, _] =>
+        // Convert nested map to Struct
+        val struct = mapToStruct(v.asInstanceOf[Map[String, Any]])
+        valueBuilder.setStructValue(struct)
+      case v: Seq[_] =>
+        // Convert list to ListValue
+        val listValue = ListValue.newBuilder()
+        v.foreach(item => listValue.addValues(anyToValue(item)))
+        valueBuilder.setListValue(listValue.build())
+      case _ => valueBuilder.setNullValue(NullValue.NULL_VALUE) // Handle unsupported types as NullValue
+    }
+
+    valueBuilder.build()
+  }
+
+  // Function to convert Map[String, Any] to Struct using the builder
+  def mapToStruct(map: Map[String, Any]): Struct = {
+    val structBuilder = Struct.newBuilder()
+
+    map.foreach { case (key, value) =>
+      structBuilder.putFields(key, anyToValue(value))
+    }
+
+    structBuilder.build()
+  }
+}
+
+object Main extends App {
+  // Example Map
+  val exampleMap: Map[String, Any] = Map(
+    "name" -> "Bob",
+    "age" -> 40,
+    "isActive" -> false,
+    "balance" -> 1234.56,
+    "location" -> Map(
+      "city" -> "New York",
+      "state" -> "NY"
+    ),
+    "skills" -> Seq("Scala", "Java", "Python")
+  )
+
+  // Convert Map[String, Any] to Struct
+  val protobufStruct: Struct = MapToProtobufStruct.mapToStruct(exampleMap)
+
+  // Print the resulting Struct
+  println(protobufStruct)
+}
