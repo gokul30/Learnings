@@ -114,3 +114,56 @@ object Main extends App {
   // Print the resulting Struct
   println(protobufStruct)
 }
+
+-------------
+
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import scala.collection.mutable.LinkedHashMap
+import scala.jdk.CollectionConverters._  // to convert Java collections to Scala
+
+object JsonToOrderedMap {
+  // Create a Jackson ObjectMapper with Scala support
+  val mapper = new ObjectMapper()
+  // Register the DefaultScalaModule to handle Scala types
+  mapper.registerModule(DefaultScalaModule)
+
+  // Recursively convert any nested maps to LinkedHashMap
+  def convertToLinkedHashMap(map: java.util.Map[String, Any]): LinkedHashMap[String, Any] = {
+    map.asScala.foldLeft(LinkedHashMap[String, Any]()) {
+      case (acc, (key, value)) =>
+        val convertedValue = value match {
+          case nestedMap: java.util.Map[_, _] =>
+            convertToLinkedHashMap(nestedMap.asInstanceOf[java.util.Map[String, Any]])
+          case other => other
+        }
+        acc + (key -> convertedValue)
+    }
+  }
+
+  def jsonToOrderedMap(jsonString: String): LinkedHashMap[String, Any] = {
+    // Read the JSON as a generic Java Map first
+    val javaMap = mapper.readValue(jsonString, classOf[java.util.Map[String, Any]])
+    // Convert the Java Map (with possible nested structures) into a Scala LinkedHashMap
+    convertToLinkedHashMap(javaMap)
+  }
+}
+
+// Example usage:
+val jsonStr = """{
+  "name": "John",
+  "age": 30,
+  "isEmployee": true,
+  "details": {
+    "city": "New York",
+    "position": "Engineer",
+    "projects": {
+      "project1": "AI",
+      "project2": "ML"
+    }
+  }
+}"""
+
+val result: LinkedHashMap[String, Any] = JsonToOrderedMap.jsonToOrderedMap(jsonStr)
+
+println(result)
